@@ -11,7 +11,7 @@ use lib "$FindBin::Bin/lib"
 use Plack::Builder;
 
 use YATT::Lite::WebMVC0::SiteApp -as_base;
-# use YATT::Lite qw/Entity *CON/;
+use YATT::Lite qw/Entity *CON/;
 # use YATT::Lite::WebMVC0::Partial::Session2 -as_base;
 
 {
@@ -21,7 +21,7 @@ use YATT::Lite::WebMVC0::SiteApp -as_base;
     $0,
     doc_root => "$app_root/public",
     use_sibling_config_dir => 1,
-    # config_dir => "$app_root.config.d",
+    config_dir => "$app_root.config.d",
   );
 
   if (-d (my $staticDir = "$app_root/static")) {
@@ -29,7 +29,10 @@ use YATT::Lite::WebMVC0::SiteApp -as_base;
   }
 
   # Define entities here.
-  # Entity somefunc => sub { my ($this, $arg) = @_; $CON->stash->{foo} ...};
+  Entity backend => sub {
+    my ($this) = @_;
+    $CON->stash->{backend} //= $site->create_backend;
+  };
 
   # To use yatt.lint, you must wrap Plack::Builder result with $site->wrapped_by.
   # Without this, yatt.lint can't find proper $yatt from anonymous sub.
@@ -39,4 +42,15 @@ use YATT::Lite::WebMVC0::SiteApp -as_base;
 
     $site->to_app;
   });
+}
+
+sub create_backend {
+  my ($site, @args) = @_;
+  require MyBackend;
+  my $cfgFile = $site->cget('config_dir') . "/backend.yml";
+  if (-r $cfgFile) {
+    MyBackend->cli_create_from_file($cfgFile, @args);
+  } else {
+    MyBackend->new(@args);
+  }
 }
