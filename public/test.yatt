@@ -1,0 +1,17 @@
+<!yatt:widget foo x y>
+
+<h2>&yatt:x;</h2>
+
+&yatt:y;
+
+
+<!yatt:widget bar a b>
+
+<yatt:layout>
+
+  <yatt:foo x="3" y="8"/>
+
+</yatt:layout>
+
+
+
